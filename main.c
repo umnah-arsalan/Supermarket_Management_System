@@ -21,9 +21,10 @@ void displayProducts();
 void searchProduct();
 void updateStock();
 void addProduct();
+void updateProduct();
 void deleteProduct();
 void purchaseProduct();
-void generateBill();
+void generateBill(int arrID[], int arrQty[]);
 void manageCustomers();
 void lowStockAlert();
 
@@ -66,7 +67,7 @@ int main(){
 
 void displayProducts() {
     printf("Product Inventory:\n");
-    printf("\n%-6s %-20s %-10s %-10s\n",
+    printf("\n%-6s %-50s %-10s %-10s\n",
            "ID", "Name", "Quantity", "Price");
     
     if(!inventory[0].productID) {
@@ -75,7 +76,7 @@ void displayProducts() {
 
     for(int i = 0; i < 100; i++) {
         if(inventory[i].productID != 0) {
-            printf("%-6d %-20s %-10.2f %-10.2f\n",
+            printf("%-6d %-50s %-10.2f %-10.2f\n",
                    inventory[i].productID, inventory[i].name, inventory[i].stockQuantity, inventory[i].price);
         }
     }
@@ -85,7 +86,7 @@ void displayProducts() {
 void searchProduct() {
     int id, found = 0;
 
-    printf("\nEnter product ID: ");
+    printf("\nEnter product ID to search: ");
     while(scanf("%d", &id) != 1 && (id < 1 || id > 100)) {
         printf("\nInvalid product ID. Please enter a value between 1 and 100: ");
         scanf("%d", &id);
@@ -119,7 +120,7 @@ void updateStock() {
             addProduct();
             break;
         case 2:
-            updateStock();
+            updateProduct();
             break;
         case 3:
             deleteProduct();
@@ -132,7 +133,7 @@ void updateStock() {
 void addProduct() {
     int id;
 
-    printf("\nEnter Product ID: ");
+    printf("\nEnter product ID to add: ");
     while(scanf("%d", &id) != 1 && (id < 1 || id > 100)) {
         printf("\nInvalid Product ID. Please enter a value between 1 and 100: ");
         scanf("%d", &id);
@@ -156,10 +157,10 @@ void addProduct() {
     printf("\nProduct added successfully!\n\n");
 }
 
-void updateStock() {
+void updateProduct() {
     int id, found = 0;
 
-    printf("\nEnter Product ID to update stock: ");
+    printf("\nEnter product ID to update: ");
     while(scanf("%d", &id) != 1 && (id < 1 || id > 100)) {
         printf("\nInvalid product ID. Please enter a value between 1 and 100: ");
         scanf("%d", &id);
@@ -167,10 +168,12 @@ void updateStock() {
 
     for(int i = 0; i < 100; i++) {
         if(inventory[i].productID == id) {
+            printf("\nEnter new product price: ");
+            scanf("%f", &inventory[i].price);
             printf("\nEnter new stock quantity: ");
             scanf("%d", &inventory[i].stockQuantity);
             found = 1;
-            printf("\nStock updated successfully!\n\n");
+            printf("\nProduct updated successfully!\n\n");
         }
     }
 
@@ -181,8 +184,9 @@ void updateStock() {
 
 void deleteProduct() {
     int id, found = 0;
+    struct Product temp[100] = {0};
 
-    printf("\nEnter Product ID to delete: ");
+    printf("\nEnter product ID to delete: ");
     while(scanf("%d", &id) != 1 && (id < 1 || id > 100)) {
         printf("\nInvalid product ID. Please enter a value between 1 and 100: ");
         scanf("%d", &id);
@@ -190,13 +194,88 @@ void deleteProduct() {
 
     for(int i = 0; i < 100; i++) {
         if(inventory[i].productID == id) {
-            inventory[i].productID = 0;
             found = 1;
-            printf("\nProduct deleted successfully!\n\n");
+        } else {
+            temp[i] = inventory[i];
         }
     }
+
+    for(int i = 0; i < 100; i++) {
+        inventory[i] = temp[i];
+    }
+
+    printf("\nProduct deleted successfully!\n\n");
 
     if(!found) {
         printf("\nProduct: %d not found!\n\n", id);
     }
+}
+
+void purchaseProduct() {
+    int id, quantity, arrID[100], arrQty[100], more, found = 0;
+
+    printf("\nEnter product ID to purchase: ");
+    while(scanf("%d", &id) != 1 && (id < 1 || id > 100)) {
+        printf("\nInvalid product ID. Please enter a value between 1 and 100: ");
+        scanf("%d", &id);
+    }
+
+    for(int i = 0; i < 100; i++) {
+        if(inventory[i].productID == id) {
+            found = 1;
+            printf("\nEnter quantity to purchase: ");
+            scanf("%d", &quantity);
+            if(inventory[i].stockQuantity < quantity) {
+                printf("\nProduct: %d is insufficient!", id);
+                break;
+            } else {
+                arrID[i] = id;
+                arrQty[i] = quantity;
+                inventory[i].stockQuantity -= quantity;
+            }
+        }
+    }
+
+    printf("\n\nDo you want to purchase more products? (1 for Yes, 0 for No): ");
+    scanf("%d", &more);
+    printf("\n");
+
+    if(more == 1) {
+        purchaseProduct();
+    } else {
+        generateBill(arrID, arrQty);
+    }
+}
+
+void generateBill(int arrID[], int arrQty[]) {
+    float total = 0.0, bill = 0.0;
+    
+    printf("\n=========BILL DETAIL=========\n\n");
+    printf("%-6s %-50s %-10s %-10s %-10s\n\n", "ID", "Name", "Quantity", "Price", "Bill");
+
+    for(int i = 0; i < 100; i++) {
+        if(arrID[i]) {
+            bill = inventory[arrID[i] - 1].price * arrQty[i];
+            printf("%-6d %-50s %-10d %-10.2f %-10.2f\n",
+                   arrID[i], inventory[arrID[i] - 1].name, arrQty[i], inventory[arrID[i] - 1].price, bill);
+            total += bill;
+        }
+    }
+
+    printf("\n=============================\n\n");
+    printf("Total Bill: Rs.%.2f\n\n", total);
+}
+
+void lowStockAlert() {
+    printf("\nLOW STOCK ALERT\n");
+    printf("\n%-6s %-50s %-10s\n", "ID", "Name", "Quantity");
+
+    for(int i = 0; i < 100; i++) {
+        if(inventory[i].stockQuantity < 5) {
+            printf("%-6d %-50s %-10d\n",
+                   inventory[i].productID, inventory[i].name, inventory[i].stockQuantity);
+        }
+    }
+
+    printf("\n");
 }
