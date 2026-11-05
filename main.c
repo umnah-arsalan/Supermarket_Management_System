@@ -1,5 +1,4 @@
 #include<stdio.h>
-#include<string.h>
 
 struct Product inventory[100] = {0};
 struct Order orderHistory[500] = {0};
