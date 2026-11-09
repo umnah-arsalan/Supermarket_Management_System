@@ -165,6 +165,11 @@ void updateStock() {
 }
 
 void addProduct() {
+    if(totalProducts >= 100) {
+        printf("\nInventory is full. Cannot add more products.\n\n");
+        return;
+    }
+
     int id;
 
     printf("\nEnter product ID to add: ");
@@ -235,15 +240,21 @@ void deleteProduct() {
     }
 
     if(found) {
-        for(int i = id - 1; i < 99; i++) {
+        for(int i = id - 1; i < totalProducts - 1; i++) {
             inventory[i] = inventory[i + 1];
+            if(inventory[i].productID == 0) {
+                break;
+            }
         }
 
-        inventory[99].productID = 0;
-        strcpy(inventory[99].name, "");
-        inventory[99].price = 0.0;
-        inventory[99].stockQuantity = 0;
+        if(inventory[totalProducts - 1].productID != 0) {
+            inventory[totalProducts - 1].productID = 0;
+            strcpy(inventory[totalProducts - 1].name, "");
+            inventory[totalProducts - 1].price = 0.0;
+            inventory[totalProducts - 1].stockQuantity = 0;
+        }
 
+        totalProducts--;
         printf("\nProduct deleted successfully and inventory shifted!\n\n");
     } else {
         printf("\nProduct ID %d not found!\n\n", id);
